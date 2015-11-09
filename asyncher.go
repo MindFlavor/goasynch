@@ -1,8 +1,10 @@
-// Package selfdisposer incapsulates a
-// long running goroutine with disposing (closing)
+// Package goasync incapsulates a
+// long running goroutine with sync
 // at the end
 package goasync
 
+// Asyncer interface exposes the methods
+// you can call start the processing.
 type Asyncer interface {
 	Process() (interface{}, error)
 	ProcessAsync() Waiter
@@ -14,6 +16,8 @@ type selfdisposer struct {
 	panicFnc   func()
 }
 
+// New creates a new idle Asyncher.
+// To start it call its methods.
 func New(mainFnc func() (interface{}, error), finallyFnc func(interface{}, error) (interface{}, error), panicFnc func()) Asyncer {
 	return &selfdisposer{
 		finallyFnc: finallyFnc,

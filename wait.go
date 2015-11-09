@@ -1,5 +1,8 @@
 package goasync
 
+// The Waiter interface allows you to
+// synchronize the async call and
+// retrieve the results.
 type Waiter interface {
 	Wait() (interface{}, error)
 }
