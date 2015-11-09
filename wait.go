@@ -1,4 +1,4 @@
-package goasync
+package async
 
 // The Waiter interface allows you to
 // synchronize the async call and

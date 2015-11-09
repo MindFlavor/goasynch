@@ -1,7 +1,7 @@
-// Package goasync incapsulates a
+// Package async incapsulates a
 // long running goroutine with sync
 // at the end
-package goasync
+package async
 
 // Asyncer interface exposes the methods
 // you can call start the processing.

@@ -1,4 +1,4 @@
-package goasync
+package async
 
 import (
 	"bytes"
