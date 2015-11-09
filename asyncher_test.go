@@ -2,6 +2,7 @@ package goasync
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,7 +27,7 @@ func TestSync(t *testing.T) {
 	i, _ := a.Process()
 	buf := i.(*bytes.Buffer)
 
-	assert.Equal(t, buf.String(), "main\n\rfinally\n\r")
+	assert.Equal(t, "main\n\rfinally\n\r", buf.String())
 }
 
 func TestAsync(t *testing.T) {
@@ -49,7 +50,7 @@ func TestAsync(t *testing.T) {
 	i, _ := w.Wait()
 	buf := i.(*bytes.Buffer)
 
-	assert.Equal(t, buf.String(), "main\n\rfinally\n\r")
+	assert.Equal(t, "main\n\rfinally\n\r", buf.String())
 }
 
 func TestSyncClosure(t *testing.T) {
@@ -69,7 +70,7 @@ func TestSyncClosure(t *testing.T) {
 
 	a.Process()
 
-	assert.Equal(t, buf.String(), "main\n\rfinally\n\r")
+	assert.Equal(t, "main\n\rfinally\n\r", buf.String())
 }
 
 func TestAsyncClosure(t *testing.T) {
@@ -91,5 +92,51 @@ func TestAsyncClosure(t *testing.T) {
 
 	waiter.Wait()
 
-	assert.Equal(t, buf.String(), "main\n\rfinally\n\r")
+	assert.Equal(t, "main\n\rfinally\n\r", buf.String())
+}
+
+func TestPanicClosure(t *testing.T) {
+	buf := new(bytes.Buffer)
+
+	a := New(
+		func() (interface{}, error) {
+			buf.WriteString("main\n\r")
+			panic("!!!")
+
+		},
+		func(interface{}, error) (interface{}, error) {
+			buf.WriteString("finally\n\r")
+			return nil, nil
+		},
+		func(e interface{}) {
+			buf.WriteString(fmt.Sprintf("recover%s\n\r", e))
+		},
+	)
+
+	a.Process()
+
+	assert.Equal(t, "main\n\rrecover!!!\n\rfinally\n\r", buf.String())
+}
+
+func TestPanicClosureFinallyOnlyOnce(t *testing.T) {
+	buf := new(bytes.Buffer)
+
+	a := New(
+		func() (interface{}, error) {
+			buf.WriteString("main\n\r")
+			panic("!!!")
+
+		},
+		func(interface{}, error) (interface{}, error) {
+			buf.WriteString("finally\n\r")
+			panic("$$$")
+		},
+		func(e interface{}) {
+			buf.WriteString(fmt.Sprintf("recover%s\n\r", e))
+		},
+	)
+
+	a.Process()
+
+	assert.Equal(t, "main\n\rrecover!!!\n\rfinally\n\rrecover$$$\n\r", buf.String())
 }
